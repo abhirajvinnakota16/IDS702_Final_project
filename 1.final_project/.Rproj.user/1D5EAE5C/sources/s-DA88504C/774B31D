@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575227527288.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "774B31D",
+    "lastKnownWriteTime" : 1575369257,
+    "last_content_update" : 1575369257313,
+    "path" : "~/Desktop/regressions/1.final_project/lin_reg_day.R",
+    "project_path" : "lin_reg_day.R",
+    "properties" : {
+        "cursorPosition" : "307,27",
+        "scrollLine" : "308",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

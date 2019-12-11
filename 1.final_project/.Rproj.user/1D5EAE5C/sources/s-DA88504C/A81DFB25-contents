@@ -1,0 +1,284 @@
+---
+title: "Methods & Analysis 2"
+author: "Abhiraj Vinnakota (agv9)"
+date: "9/11/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lattice)
+library(ggplot2)
+OldFaithful <- read.csv('OldFaithful.csv')
+```
+
+## Question 1.1
+
+Summary of the Model: 
+
+```{r, echo = FALSE}
+old_fit <- lm(Interval ~ as.factor(Date) + Duration, data = OldFaithful)
+summary(old_fit)
+```
+
+Considering each of the dates as a factor enables us to make changes to the intercept of the regression line for each date (essentially, helping to fit a different line for each date) However, on viewing the above summary it seems that none of the dates have a significant difference (as indicated by the P value) from Date1 (which has been absorbed into intercept).
+There, there is no need to control for any of the dates. 
+
+## Question 1.2
+
+```{r, echo = FALSE}
+oldfaithful_line <- lm(Interval ~ Duration, data = OldFaithful)
+anova(old_fit, oldfaithful_line)
+```
+
+The high P value of $0.9828$ indicates that the new model is not statistically different from the previous model. Hence, we may not have necessarily improved upon the older model. 
+
+## Question 1.3
+
+```{R, echo = FALSE}
+library(caret)
+set.seed(1337)
+trainctl = trainControl(method='cv', number = 10)
+model1 = train(Interval~Duration, 
+                  method='lm', 
+                  data=OldFaithful, 
+                  trControl=trainctl)
+model2 = train(Interval~Duration + as.factor(Date), method='lm', 
+                  data=OldFaithful, 
+                  trControl=trainctl)
+```
+
+I've used the caret package to run k-fold cross validation (with k =10).
+The average RMSE for the earlier model is at $6.664$
+The average RMSE for the the model with date variable in it is at $6.976$. 
+Therefore, the earlier model appears to have higher predictive accuracy based on the RMSE values. 
+
+## Question 2
+
+```{R, echo = FALSE}
+#importing the dataset
+babies <- read.csv("/Users/abhirajvinnakota/Desktop/Unit 3.2 - Linear regression/smoking.csv",header= T, colClasses = c("numeric","numeric","numeric","numeric","numeric","factor","numeric","factor","numeric","numeric","factor", "factor"), sep = ",")
+
+#Treating med
+babies$med[which(babies$med %in% c(0,1) )] <- 1
+babies$med[which(babies$med %in% c(3,4,6,7) )] <- 3
+levels(babies$med)[1:2] <- 1
+levels(babies$med)[4]<- 3
+levels(babies$med)[5]<- 3
+
+#Treating Race
+babies$mrace[which(babies$mrace %in% c(0,1,2,3,4) )] <- 5
+levels(babies$mrace)[0:5] <- 5
+
+```
+
+## Summary
+
+Our main goal in this analysis is to identify if there is any kind of association between the smoking habit of mothers during pregnency and the birth weights of babies. For this analysis, we will be using a subset of data that was orgiginally used in one of the first studies that addressed the issue of pregnancy and smoking, conducted by the Child Health and Development Studies on all babies born between 1960 and 1967 at the Kaiser Foundation Hospital in Oakland, CA. 
+
+Our questions of interest include the following:
+
+1> Do mothers who smoke tend to give birth to babies with lower weights than mothers who do not smoke?
+
+2> What is a likely range for the difference in birth weights for smokers and non-smokers?
+
+3> Is there any evidence that the association between smoking and birth weight differs by mother’s race? If so, characterize those differences.
+
+4> Are there other interesting associations with birth weight that are worth mentioning?
+
+Using a linear regression model on the given data, it was possible to gain a few insights into the above questions. The model from which the results have been interpreted is as follows:
+
+$$
+\begin{aligned}
+Birth Weight = &\beta_{o} + \beta_{1} * Smoking + \beta_{2} * Mother's Height + \beta_{3} * Mother's Race +\\ 
+&\beta_{4} * Mother's Pregnency Weight + \beta_{5} * Parity + \beta_{6} * Mother's Height | Mother's Race + \epsilon ,  \epsilon \sim N(0, \sigma^2)
+\end{aligned}
+$$
+
+
+We see that the Adjusted R-squared for this model is at $0.1496$ . Even though the R square of the model isn't very high (there is still a lot of variance in the baby weights that the model fails to explain), we can still use it to understand associations between the baby weight's and the available variables in the dataset.
+
+From the summary, we can conclude that the smoking status of the pregnent mother does have a significant association with the baby weight (indicated by the P value of $8.57e-16$). From the estimate of the coefficient of $smoke1$ we can say that on an average there is a reduction in $9.485$ ounces in the body weight of the new born when the mother is smoking as compared to when the mother wasn't smoking. 
+
+On establishing a 95% confidence interval on this coefficient, we can say that we can be 95% confident that the average reduction in baby weight can be anywhere between $7.216$ ounces to $11.755$ ounces when the pregnent mother is smoking as compared to when she wasn't. 
+(see appendix 2.1 for more details)
+
+Associations:
+
+The behaviour of how baby weights differ based on the smoking status of the pregnant mother across different races can be viewed here. 
+
+Legend: 
+5 = white 
+6 = mexican 
+7 = black 
+8 = asian 
+9 = mix
+
+```{R, echo = FALSE, out.width='50%', out.height='50%', fig.align="center"}
+library(lattice)
+xyplot(bwt.oz~smoke|mrace, data= babies, xlab= "Smoking Status",  ylab = "Baby Weight", group = mrace ,type=c("p","r"),col.line="red4")
+```
+
+From an initial view of the above visualization, it does seem that the trend is different for 6 (mexican) when compared to the rest of the races. However, the interactions between mother's race and smoking status did not turn out to be significant to be introduced into in the final model.
+
+It is actually striking (for me atleast) to notice that smoking status of the mother is a bigger predictor of the baby's weight than the mother's pregnency weight or the mother's height.
+
+It's quite reasonable to see that the mother's pregnency weight and the mother's height are good predictors of the baby's weight. There is also a decent correlation of around 0.5 between the weight and the height of the mother (which is expected). However, this is not big enough to suspect multicollinearity. (see 2.2 for more details)
+
+Another interesting assosiation worth mentioning is that the race variables aloing with its interaction with mother's height is a significant predictor for the mexican (6) and the asian (8) races.
+
+## Data
+
+The data provided in the file "smoking.csv" has  been used for this analysis. The data has 869 observations across total of 12 variables. There were no missing values as well as unknowns in the data. The summary of the dataset is as follows: 
+
+```{R, echo = FALSE, out.width='50%', out.height='50%', fig.align="center"}
+summary(babies)
+```
+
+Please refer to the data disctionary for the meaning of each value in the factor variables.
+Please refer to the appendix 2.2 for the scatter plots and the box plots of each of the variables. 
+
+A brief description of each of the variables is given below: 
+
+1) id : It's a unique identifier. It doesn't carry any information about association between baby weights and smoking/non-smoking mothers.
+
+2) date : There might have been changes in pregnant mother care over time which may have had an impact on the baby weight, paving way for this variable to be a good control variable in the analysis. However, as suggested by the problem statement this variable has been ignored.
+
+3) gestation : This is the count of days for delivery and is actually an outcome variable. Hence, does not fit into the scope pf our study.
+
+4) bwt.oz : This is the b abay's weight in ounces and is the outcome variable of interest. The distribution of the data is quite normal as can be seen from below. Hence, there seems to be no need for using any transformation as of now.
+
+```{R, echo = FALSE, out.width='50%', out.height='50%', fig.align="center"}
+hist(babies$bwt.oz,xlab="Baby Weights",main="Distribution of Baby Weights",col=rainbow(10))
+```
+
+5) Parity : This is the total number of previous pregnancies, including fetal deaths and still births. Being a discrete continuous variable, there isn't much of a pattern to see in the scatter plot vs baby weights. When I tried to fit a line, it showed slight positive assoiation.
+
+6) mrace : This captures the mother's race. I've treated the variable to combine the 0 to 5 values into 5 for 'White'. Looking at the boxplot for this variable, it seems that the baby weights are fairly normal in each kind of race. However, there seems to be some changes in the mean across different values. Hence, adding this variable into the analysis may be useful.
+
+7) mage: The mothers age variable seems to be well captured by the straight line. It seems to show a slight postive association with baby weights. I don't see the need to add a polynomial term to capture the trend.
+
+8) med: This captures the mother's education level. There doesn't seem to be enough data in each of the categories. As such, I've decided to combine a few categories. Therefore, the new categories as follows:
+
+    0 , 1 - 0 to 12th grade. Did not graduate high school. [as 1]
+    2 - high school graduate [as 2]
+    3,4,6,7 - high school graduate + some additional schooling [as 3]
+    5 - college graduate. [ as 5]
+    
+    Looking at the boxplot for this variable, it seems that the baby weights are fairly normal
+    in each category. The means across each of the categories do not seem to change as well.
+    However, I think I will add it to the model as see if the coefficients are significant or
+    not [My guess is that they will not be]
+
+9) mht : The mothers height variable seems to be well captured by the straight line. It seems to show a slight postive association with baby weights. I don't see the need to add a polynomial term to capture the trend.
+
+10) mpregwt : The mother's pregnency weight seems to be well captured by the straight line as well. It seems to show a slight postive association with baby weights. There seems to be no need to add a polynomial term to capture the trend.
+
+11) inc: Looking at the boxplot for the income variable, it seems that the baby weights are fairly normal in each category. The means across some of the values seem to change. Hence, adding this into the model may add value.
+
+12) smoke: This is main predictor variable of interest. There seems to be a difference in the means across the values. The distribution seenm fairly normal are fairly normal in both the category.
+
+## Model
+
+Summarize the model before talking about the methodology.
+
+I used the probable main effects in the data as inputs for my first version of the model. 
+
+```{R}
+fit <- lm(bwt.oz ~ parity + mrace + mage + med + mht + mpregwt + inc + smoke, data = babies)
+```
+
+As I suspected, 'med' turned out to be insignificant. 'Inc' also turns out to be non significant (which I didn't think would be). mage as well wasn't significant. 
+
+Removing the insignificant predictors I've tried version 2 of the model. 
+
+```{R}
+fit1 <- lm(bwt.oz ~ parity + mrace + mht + mpregwt + smoke, data = babies)
+```
+
+Version 2 of the model gave an Adjusted R-squared of 0.1435, which is higher than the first version)
+
+In order to improve the explained variance in the outcome variable, I've looked into interaction terms. However, due to numerous combinations, I've turned to model selection strategies. I've used the step-wise strategy which would suggest a model based on AIC. I've ended up with the following model.
+
+```{R}
+Model_stepwise$call
+```
+
+I went ahead and chose this model becasue it has the highest adjusted Rsquared of 0.1496 out of the 3 versions.
+
+I took a look at the residual plots to check the assumptions of linear regression. 
+
+```{R, echo = FALSE, out.width='50%', out.height='50%', fig.align="center"}
+par(mfrow=c(1,2))
+plot(Model_stepwise, which = c(1,2))
+```
+
+**linearity** - The LOESS curve is mostly a flat line at zero. Data seems to follow the linearity assumption.
+
+**normality** - The qq plot more or less seems to be a straight lint. The normality assumption stands true.
+
+**variability** - The spread for smaller fitted values and the larger fitted values seems to be the same. The assumption of variability stands true.
+
+**independence** - There seems to be no discernable pattern in the plot as well. 
+
+Also, there are no influential points.
+
+## Conclusion
+
+To conclude, I would say that the model developed may not be the best in terms of predicting birth weights. The lack of access to data variables that may explain the variance in birth weights in the dataset is behind this. However, we have achieved the primary objectives of the assignment with the limited data that we had and established some interesting associations in the data. 
+
+### Appendix
+
+## 1.3
+
+```{R}
+summary(model1)
+model1
+```
+
+```{R}
+summary(model2)
+model2
+```
+
+## 2.1
+
+```{R}
+confint(Model_stepwise)
+```
+
+## 2.2
+
+```{R}
+cor(babies[, sapply(babies, is.numeric)], method = c("spearman"))
+```
+
+## 2.3
+
+```{R, echo = FALSE}
+par(mfrow=c(2,2))
+
+plot(babies$bwt.oz~babies$parity,xlab="Parity",ylab="Baby Weight",col='cyan4')
+abline(lm(bwt.oz~parity,data=babies),col='red3',lty=10,lwd=2)
+
+plot(babies$bwt.oz~babies$mage,xlab="Mother's Age",ylab="Baby Weight",col='cyan4')
+abline(lm(bwt.oz~mage,data=babies),col='red3',lty=10,lwd=2)
+
+plot(babies$bwt.oz~babies$mht,xlab="Mother's Height",ylab="Baby Weight",col='cyan4')
+abline(lm(bwt.oz~mht,data=babies),col='red3',lty=10,lwd=2)
+
+plot(babies$bwt.oz~babies$mpregwt,xlab="Mother's Weight",ylab="Baby Weight",col='cyan4')
+abline(lm(bwt.oz~mpregwt,data=babies),col='red3',lty=10,lwd=2)
+```
+
+```{R, echo = FALSE}
+par(mfrow=c(2,2))
+
+boxplot(bwt.oz~mrace,data=babies, ylab="Baby Weight",xlab="Mother's Race",col=rainbow(15))
+
+boxplot(bwt.oz~med,data=babies, ylab="Baby Weight",xlab="Mother's Education",col=rainbow(15))
+
+boxplot(bwt.oz~inc,data=babies, ylab="Baby Weight",xlab="Income groups",col=rainbow(15))
+
+boxplot(bwt.oz~smoke,data=babies, ylab="Baby Weight",xlab="Mother's Smoking Status",col=rainbow(15))
+```

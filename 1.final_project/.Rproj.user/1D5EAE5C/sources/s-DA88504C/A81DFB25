@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575230650625.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A81DFB25",
+    "lastKnownWriteTime" : 1570656289,
+    "last_content_update" : 1570656289,
+    "path" : "~/Desktop/regressions/Methods and Analysis 2 .Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "204,3",
+        "scrollLine" : "191"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
